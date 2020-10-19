@@ -1,4 +1,10 @@
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import React, {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { Map, Marker, TileLayer } from "react-leaflet";
 import { FiPlus } from "react-icons/fi";
 import { FaTimes } from "react-icons/fa";
@@ -52,7 +58,30 @@ export default function CreateOrphanage() {
   const [opening_hours, setOpeningHours] = useState("");
   const [open_on_weekends, setOpenOnWeekends] = useState(true);
   const [images, setImages] = useState<File[]>([]);
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+  // // Delete Image
+  const deleteImage = useCallback(
+    (index) => {
+      let selectedImages = images;
+      selectedImages.splice(index, 1);
+      setImages([...selectedImages]);
+    },
+    [images]
+  );
+
+  // On select image
+  function handleSelectImages(event: ChangeEvent<HTMLInputElement>) {
+    if (!event.target.files) {
+      return;
+    }
+
+    const selectedImages = Array.from(event.target.files);
+    selectedImages.forEach((image) => {
+      images.push(image);
+    });
+
+    setImages([...images]);
+  }
 
   // Submit
   function handleSubmit(event: FormEvent) {
@@ -69,23 +98,6 @@ export default function CreateOrphanage() {
       opening_hours,
       open_on_weekends,
     });
-  }
-
-  function handleSelectImages(event: ChangeEvent<HTMLInputElement>) {
-    if (!event.target.files) {
-      return;
-    }
-
-    const selectedImages = Array.from(event.target.files);
-    selectedImages.forEach((img) => {
-      images.push(img);
-    });
-
-    const selectedImagesPreview = images.map((img) => {
-      return URL.createObjectURL(img);
-    });
-
-    setPreviewImages(selectedImagesPreview);
   }
 
   //
@@ -139,14 +151,16 @@ export default function CreateOrphanage() {
             <div className="input-block">
               <label htmlFor="images">Fotos</label>
 
-              <div className="uploaded-image"></div>
-
               <div className="images-container">
-                {previewImages.map((image) => {
+                {images.map((image, index) => {
+                  const url = URL.createObjectURL(image);
                   return (
-                    <div className="preview-image" key={image}>
-                      <img src={image} alt={name} />
-                      <div className="delete-img">
+                    <div className="preview-image" key={index}>
+                      <img src={url} alt="Imagem do orfanato" />
+                      <div
+                        className="delete-img"
+                        onClick={() => deleteImage(index)}
+                      >
                         <FaTimes color="#ff669d" />
                       </div>
                     </div>
